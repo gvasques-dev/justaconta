@@ -24,7 +24,7 @@ Feita para cuidadores em campo: mobile-first, touch-friendly, rápida e barata d
 
 ## 3. Stack
 
-- **Backend:** Python 3.15 + Django 6.x monolítico
+- **Backend:** Python 3.12 + Django 5.x monolítico
 - **Banco:** PostgreSQL via Supabase (free tier), `dj-database-url`. Local: SQLite
 - **Storage:** Supabase Storage (PDFs, recibos, prints). Local: `media/`
 - **Frontend:** Django Templates + Tailwind CSS (CDN) + Alpine.js + `signature_pad.js`
@@ -91,50 +91,56 @@ python manage.py runserver
 
 **8.1 Supabase (banco + storage)**
 1. Crie conta em supabase.com → New Project (free tier).
-2. Em Project Settings → Database, copie a `Connection string` (modo Session/Transaction).
+2. Em Project Settings → Database, copie a `Connection string` (modo Session, porta 6543).
 3. Em Storage, crie o bucket `justaconta-documents` (privado).
 4. Guarde: `SUPABASE_URL`, `SUPABASE_KEY` (anon), `DATABASE_URL`.
 
 **8.2 Render (app)**
 1. Suba o código para o GitHub.
 2. render.com → New → Web Service → selecione o repo.
-3. Config:
-   - Runtime: `Python 3`
-   - Build Command: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
-   - Start Command: `gunicorn justaconta.wsgi:application --bind 0.0.0.0:$PORT`
-   - Plan: `Free`
-4. Environment variables:
-```env
-SECRET_KEY=<gerada com get_random_secret_key>
-DEBUG=False
-ALLOWED_HOSTS=<seu-app>.onrender.com
-DATABASE_URL=<connection-string-supabase>
-SUPABASE_URL=<sua-url>
-SUPABASE_KEY=<sua-anon-key>
-SUPABASE_BUCKET=justaconta-documents
-```
+3. O `render.yaml` na raiz já configura: Build Command, Start Command, `PYTHON_VERSION=3.12.4`, `DEBUG=False`, `SECRET_KEY` auto-gerado. Basta conectar o repo.
+4. Coloque no painel (Environment) as variáveis `sync: false`:
+   ```env
+   DATABASE_URL=<connection-string-supabase>
+   SUPABASE_URL=<sua-url>
+   SUPABASE_KEY=<sua-anon-key>
+   ```
 5. Deploy. Teste: `/`, `/admin/`, exportação de PDF.
-6. Atenção free tier: o serviço dorme após inatividade (~50s para acordar) e `media/` local é efêmero — use Supabase Storage em produção.
+
+**8.3 Validação pós-deploy**
+- Acesse `https://<seu-app>.onrender.com/` → dashboard carrega.
+- `/admin/` → login funciona.
+- `/relatorios/` → PDF exporta sem erro.
+
+**8.4 Atenção free tier**
+- Render dorme após inatividade (~50s para acordar).
+- Disco efêmero: `media/` local é apagado no restart — em produção use Supabase Storage para arquivos permanentes.
 
 ## 9. Estrutura
 
 ```
 justaconta/
-├── justaconta/       # settings, urls, wsgi, asgi
-├── contas/           # models, forms, views, services, admin
-├── relatorios/       # views de relatório + PDFs ReportLab
-├── templates/        # base.html + dashboard, recibos, despesas, transacoes, relatorios, contas
-├── media/            # uploads (só dev local)
-├── staticfiles/      # collectstatic (gerado no build)
+├── justaconta/        # settings, urls, wsgi, asgi
+├── contas/            # models, forms, views, services, admin
+├── relatorios/        # views de relatório + PDFs ReportLab
+├── templates/         # base.html + dashboard, recibos, despesas, transacoes, relatorios, contas
+├── media/             # uploads (só dev local, efêmero no Render)
+├── staticfiles/       # collectstatic (gerado no build)
 ├── requirements.txt
 ├── .env.example
+├── render.yaml        # configuração Render (build/start/env)
+├── build.sh           # script build alternativo
+├── Procfile           # gunicorn start (fallback)
+├── runtime.txt        # python-3.12.4
+├── .gitignore
 └── README.md
 ```
 
 ## 10. Segurança
 
 - Nunca commite `.env`. Use `SECRET_KEY` forte e `DEBUG=False` em produção.
-- HTTPS automático no Render.
+- HTTPS automático no Render + `SECURE_SSL_REDIRECT`, HSTS, cookies secure.
+- CSRF_TRUSTED_ORIGINS configurado para o domínio Render.
 - Valide tipos de arquivo enviados; limite tamanho.
 - Trilha de auditoria: nunca edite valores históricos sem registrar — prefira estorno.
 

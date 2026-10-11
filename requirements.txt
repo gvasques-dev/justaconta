@@ -1,10 +1,12 @@
-Django>=5.0,<6.0
-gunicorn>=22.0
-dj-database-url>=2.0
-psycopg2-binary>=2.9
-python-dotenv>=1.0
-django-storages>=1.14
-reportlab>=4.2
-boto3>=1.34
-# For Render.com deployment
-whitenoise>=6.6
+# JustaConta — dependências para Render (Python 3.12)
+# Travadas com >= para evitar surpresas no build
+
+Django>=5.1,<6.0
+gunicorn>=22.0,<23.0
+whitenoise>=6.6,<7.0
+dj-database-url>=2.0,<3.0
+psycopg2-binary>=2.9,<3.0
+python-dotenv>=1.0,<2.0
+reportlab>=4.0,<5.0
+# Storage S3-compatível (Supabase Storage) — usado só se você plugar a Opção B
+django-storages[boto3]>=1.14,<2.0

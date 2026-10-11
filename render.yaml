@@ -1,0 +1,28 @@
+# Render — JustaConta (free tier)
+services:
+  - type: web
+    name: justaconta
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn justaconta.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: justaconta.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://justaconta.onrender.com
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: justaconta-documents

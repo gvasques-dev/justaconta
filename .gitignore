@@ -1,5 +1,28 @@
-.env 
-db.sqlite3
-media/
-staticfiles/
+# Environment
+.env
+.venv/
 venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+db.sqlite3
+db.sqlite3-journal
+
+# Media (local dev uploads — ephemeral on Render)
+media/
+
+# Static files (collected by WhiteNoise)
+staticfiles/
+static/
+
+# Django
+*.log
+local_settings.py
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
