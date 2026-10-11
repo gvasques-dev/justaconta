@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhes da Transação - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <a href="{% url 'contas:transacao_lista' %}" class="min-h-[44px] inline-flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                ← Voltar para Transações
+            </a>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Detalhes da Transação</h1>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'contas:transacao_editar' transacao.pk %}"
+               class="flex-1 sm:flex-none min-h-[48px] px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 active:bg-slate-800 transition flex items-center justify-center font-medium">
+                ✏️ <span class="ml-1 hidden sm:inline">Editar</span>
+            </a>
+            <a href="{% url 'contas:transacao_excluir' transacao.pk %}"
+               class="flex-1 sm:flex-none min-h-[48px] px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 active:bg-rose-800 transition flex items-center justify-center font-medium">
+                🗑️ <span class="ml-1 hidden sm:inline">Excluir</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Transaction Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <h2 class="font-semibold text-slate-900">Informações da Transação</h2>
+                    <!-- Type Badge -->
+                    {% if transacao.tipo == 'ENTRADA' or transacao.tipo == 'DEPOSITO' %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700">{{ transacao.get_tipo_display }}</span>
+                    {% elif transacao.pago_pelo_curador %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700">Recursos do Curador</span>
+                    {% else %}
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-rose-100 text-rose-700">{{ transacao.get_tipo_display }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <!-- Value -->
+                    <div class="pb-4 border-b border-slate-200">
+                        <div class="text-sm font-medium text-slate-600 mb-1">Valor</div>
+                        {% if transacao.tipo == 'ENTRADA' or transacao.tipo == 'DEPOSITO' %}
+                        <div class="text-4xl font-bold text-emerald-600">+R$ {{ transacao.valor|floatformat:2 }}</div>
+                        {% else %}
+                        <div class="text-4xl font-bold text-rose-600">-R$ {{ transacao.valor|floatformat:2 }}</div>
+                        {% endif %}
+                        {% if transacao.pago_pelo_curador %}
+                        <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                            ⚖️ Pago com recursos próprios do curador - pendente de reembolso
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Details Grid -->
+                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Data</dt>
+                            <dd class="mt-1 text-slate-900">{{ transacao.data|date:"d/m/Y" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Categoria</dt>
+                            <dd class="mt-1 text-slate-900">{{ transacao.get_categoria_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Conta de Origem</dt>
+                            <dd class="mt-1 text-slate-900">
+                                {% if transacao.conta_origem %}
+                                {{ transacao.conta_origem.nome }}
+                                {% else %}
+                                <span class="text-slate-400">-</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Conta de Destino</dt>
+                            <dd class="mt-1 text-slate-900">
+                                {% if transacao.conta_destino %}
+                                {{ transacao.conta_destino.nome }}
+                                {% else %}
+                                <span class="text-slate-400">-</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Favorecido</dt>
+                            <dd class="mt-1 text-slate-900">
+                                {% if transacao.favorecido_nome %}
+                                {{ transacao.favorecido_nome }}
+                                {% if transacao.favorecido_cpf_cnpj %}
+                                <div class="text-sm text-slate-500">CPF/CNPJ: {{ transacao.favorecido_cpf_cnpj }}</div>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-slate-400">-</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-slate-600">Criado em</dt>
+                            <dd class="mt-1 text-slate-900">{{ transacao.created_at|date:"d/m/Y H:i" }}</dd>
+                        </div>
+                    </dl>
+
+                    {% if transacao.descricao %}
+                    <div class="pt-4 border-t border-slate-200">
+                        <dt class="text-sm font-medium text-slate-600 mb-1">Descrição</dt>
+                        <dd class="text-slate-900">{{ transacao.descricao }}</dd>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachments Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    <h2 class="font-semibold text-slate-900">Anexos ({{ anexos|length }})</h2>
+                </div>
+
+                <div class="p-4">
+                    {% if anexos %}
+                    <div class="space-y-3">
+                        {% for anexo in anexos %}
+                        <div class="border border-slate-200 rounded-lg p-3 hover:bg-slate-50 transition">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl">
+                                    {% if anexo.tipo_documento == 'COMPROVANTE_PIX' %}💳
+                                    {% elif anexo.tipo_documento == 'RECIBO_ASSINADO' %}✍️
+                                    {% elif anexo.tipo_documento == 'NOTA_FISCAL' %}🧾
+                                    {% elif anexo.tipo_documento == 'PRINT_DELIVERY' %}📱
+                                    {% else %}📄{% endif %}
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-slate-900 text-sm">
+                                        {{ anexo.get_tipo_documento_display }}
+                                    </div>
+                                    {% if anexo.descricao %}
+                                    <div class="text-xs text-slate-600 mt-0.5">{{ anexo.descricao }}</div>
+                                    {% endif %}
+                                    <div class="text-xs text-slate-500 mt-1">
+                                        {{ anexo.uploaded_at|date:"d/m/Y H:i" }}
+                                    </div>
+                                    <a href="{{ anexo.arquivo.url }}" target="_blank"
+                                       class="inline-block mt-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                                        Visualizar →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-6">
+                        <span class="text-4xl">📎</span>
+                        <p class="text-slate-500 text-sm mt-2">Nenhum anexo</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upload New Attachment -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    <h2 class="font-semibold text-slate-900">Adicionar Anexo</h2>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="p-4 space-y-3">
+                    {% csrf_token %}
+
+                    <div>
+                        <label for="{{ form.tipo_documento.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                            {{ form.tipo_documento.label }}
+                        </label>
+                        {{ form.tipo_documento }}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.arquivo.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                            {{ form.arquivo.label }}
+                        </label>
+                        {{ form.arquivo }}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">
+                            {{ form.descricao.label }}
+                        </label>
+                        {{ form.descricao }}
+                    </div>
+
+                    <button type="submit"
+                            class="w-full min-h-[48px] px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition font-medium">
+                        📎 Adicionar Anexo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

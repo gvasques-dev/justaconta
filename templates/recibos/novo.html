@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Recibo Assinado - Curatela Manager{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Canvas must not scroll/zoom the page while drawing */
+    #signature-pad {
+        touch-action: none;
+        overscroll-behavior: contain;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Novo Recibo Assinado</h1>
+        <p class="text-sm sm:text-base text-slate-600">Registre pagamentos a prestadores com assinatura digital</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="recibo-form" class="space-y-5 sm:space-y-6">
+        {% csrf_token %}
+
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-4" role="alert">
+            <div class="flex items-start gap-3">
+                <span class="text-rose-500 text-xl">⚠️</span>
+                <div>
+                    <h3 class="font-semibold text-rose-800">Erros no formulário:</h3>
+                    <ul class="mt-2 space-y-1 text-sm text-rose-700">
+                        {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>• {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <h2 class="font-semibold text-slate-900">Dados do Recibo</h2>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-4">
+                <!-- Date & Category: stacked on mobile, 2 cols on tablet+ -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.data.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.data.label }}
+                        </label>
+                        {{ form.data }}
+                    </div>
+                    <div>
+                        <label for="{{ form.categoria.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.categoria.label }}
+                        </label>
+                        {{ form.categoria }}
+                    </div>
+                </div>
+
+                <!-- Provider Name & CPF -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.favorecido_nome.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.favorecido_nome.label }}
+                        </label>
+                        {{ form.favorecido_nome }}
+                    </div>
+                    <div>
+                        <label for="{{ form.favorecido_cpf_cnpj.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.favorecido_cpf_cnpj.label }}
+                        </label>
+                        {{ form.favorecido_cpf_cnpj }}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ form.descricao.label }}
+                    </label>
+                    {{ form.descricao }}
+                </div>
+
+                <!-- Value & Account -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.valor.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.valor.label }}
+                        </label>
+                        {{ form.valor }}
+                    </div>
+                    <div>
+                        <label for="{{ form.conta_origem.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                            {{ form.conta_origem.label }}
+                        </label>
+                        {{ form.conta_origem }}
+                    </div>
+                </div>
+
+                <!-- File Upload (Pix Receipt): drag-and-drop + native picker with camera on mobile -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ form.comprovante_pix.label }}
+                    </label>
+                    <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 sm:p-6 text-center active:border-indigo-400 hover:border-indigo-400 transition min-h-[120px] flex flex-col justify-center"
+                         x-data="{ dragOver: false }"
+                         @dragover.prevent="dragOver = true"
+                         @dragleave.prevent="dragOver = false"
+                         @drop.prevent="dragOver = false; $refs.fileInput.files = $event.dataTransfer.files">
+                        {{ form.comprovante_pix }}
+                        <div class="space-y-2 pointer-events-none">
+                            <span class="text-4xl">📄</span>
+                            <p class="text-slate-600" x-show="!dragOver">
+                                Arraste o comprovante Pix aqui ou
+                                <label for="{{ form.comprovante_pix.id_for_label }}" class="text-indigo-600 hover:text-indigo-700 cursor-pointer font-medium pointer-events-auto">
+                                    tire uma foto / selecione
+                                </label>
+                            </p>
+                            <p class="text-indigo-600 font-medium" x-show="dragOver">Solte o arquivo aqui</p>
+                            <p class="text-xs text-slate-500">PNG, JPG ou PDF — a câmera abre automaticamente no celular</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signature Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <h2 class="font-semibold text-slate-900">Assinatura do Prestador</h2>
+                <p class="text-sm text-slate-600 mt-1">Assine na área abaixo com o dedo ou stylus</p>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-4">
+                <div class="border-2 border-slate-300 rounded-lg overflow-hidden bg-white signature-area">
+                    <canvas id="signature-pad" class="w-full h-48 sm:h-64 block"></canvas>
+                </div>
+
+                <input type="hidden" name="signature_data" id="signature-data">
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <button type="button" id="clear-signature"
+                            class="min-h-[48px] px-5 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium flex items-center justify-center gap-2">
+                        🗑️ Limpar Assinatura
+                    </button>
+                    <div class="flex-1 sm:text-right text-sm flex sm:justify-end items-center gap-2">
+                        <span id="signature-status" class="text-amber-600 font-medium">Aguardando assinatura...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="{% url 'contas:dashboard' %}"
+               class="min-h-[48px] px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium flex items-center justify-center order-2 sm:order-1">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="flex-1 min-h-[52px] px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition font-medium flex items-center justify-center gap-2 order-1 sm:order-2">
+                <span>💾</span> Salvar e Gerar PDF
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const canvas = document.getElementById('signature-pad');
+        const statusEl = document.getElementById('signature-status');
+        const clearBtn = document.getElementById('clear-signature');
+        const form = document.getElementById('recibo-form');
+
+        const signaturePad = new SignaturePad(canvas, {
+            minWidth: 0.5,
+            maxWidth: 2.5,
+            backgroundColor: 'rgb(255, 255, 255)'
+        });
+
+        // Resize canvas to the container width, keeping devicePixelRatio crispness.
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            canvas.width = Math.round(rect.width * ratio);
+            canvas.height = Math.round(rect.height * ratio);
+            canvas.getContext('2d').scale(ratio, ratio);
+        }
+
+        // Preserve the existing signature across resizes (rotation, keyboard, etc.).
+        function handleResize() {
+            const data = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
+            resizeCanvas();
+            if (data) {
+                signaturePad.fromDataURL(data, {}, updateStatus);
+            }
+        }
+
+        resizeCanvas();
+
+        // Debounced resize triggers: window resize + device rotation.
+        let resizeTimer = null;
+        function scheduleResize() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 150);
+        }
+        window.addEventListener('resize', scheduleResize);
+        window.addEventListener('orientationchange', () => setTimeout(handleResize, 300));
+
+        // React to container width changes (sidebar toggle, etc.).
+        if ('ResizeObserver' in window && canvas.parentElement) {
+            new ResizeObserver(scheduleResize).observe(canvas.parentElement);
+        }
+
+        // Prevent page scroll/zoom while drawing with finger or stylus.
+        ['touchstart', 'touchmove', 'touchend'].forEach(function (evt) {
+            canvas.addEventListener(evt, function (e) {
+                if (e.cancelable) e.preventDefault();
+            }, { passive: false });
+        });
+
+        function updateStatus() {
+            if (signaturePad.isEmpty()) {
+                statusEl.textContent = 'Aguardando assinatura...';
+                statusEl.className = 'text-amber-600 font-medium';
+            } else {
+                statusEl.textContent = '✓ Assinatura capturada';
+                statusEl.className = 'text-emerald-600 font-medium';
+            }
+        }
+
+        signaturePad.addEventListener('endStroke', updateStatus);
+
+        clearBtn.addEventListener('click', function () {
+            signaturePad.clear();
+            updateStatus();
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (signaturePad.isEmpty()) {
+                e.preventDefault();
+                alert('Por favor, capture a assinatura do prestador antes de salvar.');
+                return false;
+            }
+            // Convert signature canvas to data URL for the backend.
+            document.getElementById('signature-data').value = signaturePad.toDataURL('image/png');
+        });
+    })();
+</script>
+{% endblock %}

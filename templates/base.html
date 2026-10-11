@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <!-- viewport-fit=cover enables env(safe-area-inset-*) on notched phones -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>{% block title %}JustaConta{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js for lightweight UI state (Modals, Toggles, Tabs) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Signature Pad JS for Touch/Pen Signature Capture -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+    <style>
+        /* Prevent iOS text inflation on rotate/zoom */
+        html { -webkit-text-size-adjust: 100%; }
+        /* Cleaner taps: no gray flash on buttons/links */
+        a, button, label, [role="button"] { -webkit-tap-highlight-color: transparent; }
+        /* Inputs never exceed their container (iOS date pickers overflow otherwise) */
+        input, select, textarea { max-width: 100%; }
+        /* Signature canvas: never scroll the page while drawing */
+        .signature-area { touch-action: none; overscroll-behavior: contain; }
+        /* Horizontal scroll cue for data tables */
+        .scroll-cue { background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95) 60%); }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+
+    {% if messages %}
+    <div class="fixed top-3 left-3 right-3 sm:left-auto sm:top-4 sm:right-4 z-50 space-y-2 sm:max-w-sm">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}bg-emerald-500{% elif message.tags == 'error' %}bg-rose-500{% else %}bg-slate-700{% endif %} text-white px-4 py-3 min-h-[48px] flex items-center rounded-lg shadow-lg"
+             x-data="{ show: true }" x-init="setTimeout(() => show = false, 5000)" x-show="show" x-transition>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Desktop Sidebar (≥1024px) -->
+    <aside class="hidden lg:flex flex-col w-64 bg-slate-900 text-white min-h-screen fixed left-0 top-0">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-bold text-white">JustaConta</h1>
+            <p class="text-slate-400 text-sm mt-1">Gestão Financeira Judicial</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="{% url 'contas:dashboard' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">📊</span> Dashboard
+            </a>
+            <a href="{% url 'contas:recibo_novo' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'recibo_novo' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">✍️</span> Novo Recibo
+            </a>
+            <a href="{% url 'contas:despesa_nova' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'despesa_nova' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">🛒</span> Nova Despesa
+            </a>
+            <a href="{% url 'contas:transacao_lista' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'transacao_lista' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">💳</span> Transações
+            </a>
+            <a href="{% url 'contas:lista' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'lista' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">🏦</span> Contas
+            </a>
+            <a href="{% url 'relatorios:relatorio_mensal' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.namespace == 'relatorios' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
+                <span class="text-xl">📋</span> Relatórios
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <a href="/admin/" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg hover:bg-slate-800 text-slate-400">
+                <span class="text-xl">⚙️</span> Admin
+            </a>
+        </div>
+    </aside>
+
+    <!-- Mobile Top Bar (<1024px) -->
+    <header class="lg:hidden sticky top-0 z-40 bg-slate-900 text-white px-4 py-3 flex items-center justify-between"
+            style="padding-top: calc(0.75rem + env(safe-area-inset-top));">
+        <h1 class="text-base font-bold">JustaConta</h1>
+        <a href="/admin/" class="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-300 text-xl" aria-label="Admin">⚙️</a>
+    </header>
+
+    <!-- Main Content -->
+    <main class="lg:ml-64 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Mobile Bottom Navigation (<1024px) -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]"
+         style="padding-bottom: env(safe-area-inset-bottom);">
+        <div class="grid grid-cols-5">
+            <a href="{% url 'contas:dashboard' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'dashboard' %}text-indigo-600{% else %}text-slate-500{% endif %}">
+                <span class="text-xl leading-none">📊</span>
+                <span class="text-[11px] mt-1 font-medium">Início</span>
+            </a>
+            <a href="{% url 'contas:recibo_novo' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'recibo_novo' %}text-indigo-600{% else %}text-slate-500{% endif %}">
+                <span class="text-xl leading-none">✍️</span>
+                <span class="text-[11px] mt-1 font-medium">Recibo</span>
+            </a>
+            <a href="{% url 'contas:despesa_nova' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'despesa_nova' %}text-indigo-600{% else %}text-slate-500{% endif %}">
+                <span class="text-xl leading-none">🛒</span>
+                <span class="text-[11px] mt-1 font-medium">Despesa</span>
+            </a>
+            <a href="{% url 'contas:transacao_lista' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'transacao_lista' %}text-indigo-600{% else %}text-slate-500{% endif %}">
+                <span class="text-xl leading-none">💳</span>
+                <span class="text-[11px] mt-1 font-medium">Transações</span>
+            </a>
+            <a href="{% url 'relatorios:relatorio_mensal' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.namespace == 'relatorios' %}text-indigo-600{% else %}text-slate-500{% endif %}">
+                <span class="text-xl leading-none">📋</span>
+                <span class="text-[11px] mt-1 font-medium">Relatórios</span>
+            </a>
+        </div>
+    </nav>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

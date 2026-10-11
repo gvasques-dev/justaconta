@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Contas - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-6 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 truncate">Contas Bancárias</h1>
+            <p class="text-sm text-slate-600">Gerencie as contas do curatelado e o caixa físico</p>
+        </div>
+        <a href="{% url 'contas:criar' %}"
+           class="shrink-0 min-h-[48px] px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition flex items-center gap-2 font-medium">
+            <span>+</span> <span class="hidden sm:inline">Nova Conta</span><span class="sm:hidden">Nova</span>
+        </a>
+    </div>
+
+    {% if contas %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        {% for conta in contas %}
+        <div class="bg-white rounded-xl shadow-sm border {% if conta.tipo == 'CAIXA_FISICO' %}border-amber-200{% else %}border-slate-200{% endif %} overflow-hidden">
+            <div class="p-5">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">{% if conta.tipo == 'CAIXA_FISICO' %}💵{% else %}🏦{% endif %}</span>
+                        <div>
+                            <div class="font-semibold text-slate-900">{{ conta.nome }}</div>
+                            <div class="text-xs text-slate-500">{{ conta.get_tipo_display }}</div>
+                        </div>
+                    </div>
+                    {% if not conta.ativa %}
+                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Inativa</span>
+                    {% endif %}
+                </div>
+
+                <div class="pb-3 border-b border-slate-100">
+                    <div class="text-sm text-slate-600 mb-1">Saldo Atual</div>
+                    <div class="text-2xl font-bold {% if conta.tipo == 'CAIXA_FISICO' %}text-amber-600{% else %}text-slate-900{% endif %}">
+                        R$ {{ conta.saldo_atual|floatformat:2 }}
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">
+                        Inicial: R$ {{ conta.saldo_inicial|floatformat:2 }}
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                    <a href="{% url 'contas:editar' conta.pk %}"
+                       class="flex-1 min-h-[48px] px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 active:bg-slate-300 transition text-sm flex items-center justify-center font-medium">
+                        ✏️ Editar
+                    </a>
+                    <a href="{% url 'contas:excluir' conta.pk %}"
+                       class="min-h-[48px] min-w-[48px] px-3 py-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 active:bg-rose-200 transition flex items-center justify-center text-sm font-medium">
+                        🗑️
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-6 py-12 text-center">
+        <span class="text-5xl">🏦</span>
+        <p class="text-slate-500 text-lg mt-4">Nenhuma conta cadastrada</p>
+        <p class="text-slate-400 text-sm mt-2">Crie a conta bancária e o caixa físico para começar</p>
+        <a href="{% url 'contas:criar' %}"
+           class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            Criar Primeira Conta
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

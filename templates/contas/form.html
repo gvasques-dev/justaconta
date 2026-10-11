@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Editar{% else %}Nova{% endif %} Conta - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-6">
+        <a href="{% url 'contas:lista' %}" class="min-h-[44px] inline-flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+            ← Voltar para Contas
+        </a>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900">
+            {% if object %}Editar Conta{% else %}Nova Conta{% endif %}
+        </h1>
+        <p class="text-sm sm:text-base text-slate-600">
+            {% if object %}Atualize os dados da conta{% else %}Cadastre uma conta bancária ou o caixa físico{% endif %}
+        </p>
+    </div>
+
+    <form method="post" class="space-y-5 sm:space-6">
+        {% csrf_token %}
+
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="bg-rose-50 border border-rose-200 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+                <span class="text-rose-500 text-xl">⚠️</span>
+                <div>
+                    <h3 class="font-semibold text-rose-800">Erros no formulário:</h3>
+                    <ul class="mt-2 space-y-1 text-sm text-rose-700">
+                        {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li><strong>{{ field }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <h2 class="font-semibold text-slate-900">Dados da Conta</h2>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-4">
+                <!-- Name -->
+                <div>
+                    <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ form.nome.label }}
+                    </label>
+                    {{ form.nome }}
+                    {% if form.nome.errors %}
+                    <p class="mt-1 text-sm text-rose-600">{{ form.nome.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Type -->
+                <div>
+                    <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ form.tipo.label }}
+                    </label>
+                    {{ form.tipo }}
+                    {% if form.tipo.errors %}
+                    <p class="mt-1 text-sm text-rose-600">{{ form.tipo.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-slate-500">
+                        Use <strong>Conta Bancária</strong> para contas de banco e <strong>Caixa Físico</strong> para o dinheiro em espécie.
+                    </p>
+                </div>
+
+                <!-- Initial Balance -->
+                <div>
+                    <label for="{{ form.saldo_inicial.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ form.saldo_inicial.label }}
+                    </label>
+                    {{ form.saldo_inicial }}
+                    {% if form.saldo_inicial.errors %}
+                    <p class="mt-1 text-sm text-rose-600">{{ form.saldo_inicial.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-slate-500">
+                        Saldo no momento do cadastro. Transações futuras serão calculadas a partir daqui.
+                    </p>
+                </div>
+
+                <!-- Active -->
+                <div class="border-t border-slate-200 pt-4">
+                    <label class="flex items-center gap-3 cursor-pointer min-h-[48px] p-2 -m-2 rounded-lg active:bg-slate-50">
+                        {{ form.ativa }}
+                        <div>
+                            <div class="font-medium text-slate-900">Conta Ativa</div>
+                            <div class="text-xs text-slate-600">Contas inativas não aparecem no dashboard</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="{% url 'contas:lista' %}"
+               class="min-h-[48px] px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium flex items-center justify-center order-2 sm:order-1">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="flex-1 min-h-[52px] px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition font-medium flex items-center justify-center gap-2 order-1 sm:order-2">
+                <span>💾</span> {% if object %}Salvar Alterações{% else %}Criar Conta{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

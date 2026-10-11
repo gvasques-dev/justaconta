@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Conta - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-rose-200 overflow-hidden">
+        <div class="px-6 py-4 bg-rose-50 border-b border-rose-200">
+            <h1 class="text-xl font-bold text-rose-800">⚠️ Confirmar Exclusão</h1>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <p class="text-slate-700">
+                Tem certeza que deseja excluir esta conta?
+            </p>
+
+            <!-- Account Summary -->
+            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">{% if conta.tipo == 'CAIXA_FISICO' %}💵{% else %}🏦{% endif %}</span>
+                    <div>
+                        <div class="font-semibold text-slate-900">{{ conta.nome }}</div>
+                        <div class="text-sm text-slate-600">
+                            {{ conta.get_tipo_display }} · Saldo: R$ {{ conta.saldo_atual|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <span class="text-amber-500 text-xl">⚠️</span>
+                    <div class="text-sm text-amber-800">
+                        <strong>Atenção:</strong> A exclusão será bloqueada caso existam transações vinculadas a esta conta.
+                        Nesse caso, exclua ou reclassifique as transações primeiro.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <a href="{% url 'contas:lista' %}"
+                   class="min-h-[48px] px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium flex items-center justify-center order-2 sm:order-1">
+                    Cancelar
+                </a>
+                <form method="post" class="flex-1 order-1 sm:order-2">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full min-h-[52px] px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 active:bg-rose-800 transition font-medium">
+                        🗑️ Excluir Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

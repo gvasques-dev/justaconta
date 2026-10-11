@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios Mensais - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Page Header: stacks on mobile -->
+    <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Relatório Mensal Judicial</h1>
+            <p class="text-sm sm:text-base text-slate-600">Conciliação financeira e exportação para o tribunal</p>
+        </div>
+
+        <!-- Export Actions: full-width buttons on mobile -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <a href="{% url 'relatorios:exportar_dossier_pdf' %}?ano={{ year }}&mes={{ month }}"
+               class="min-h-[48px] px-4 py-3 sm:py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition flex items-center justify-center gap-2 font-medium">
+                <span>📥</span> Baixar Dossiê PDF
+            </a>
+            <a href="{% url 'relatorios:exportar_reembolso' %}"
+               class="min-h-[48px] px-4 py-3 sm:py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 active:bg-slate-900 transition flex items-center justify-center gap-2 font-medium">
+                <span>📋</span> Relatório Reembolso
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-5 sm:mb-6">
+        <form method="get" class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
+            <div class="flex-1">
+                <label for="mes" class="block text-sm font-medium text-slate-700 mb-1.5">Mês</label>
+                <select name="mes" id="mes" class="w-full min-h-[48px] rounded-lg border-gray-300 bg-white px-3 py-2 text-base sm:text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    {% for y, m, name in month_options %}
+                    <option value="{{ m }}" {% if y == year and m == month %}selected{% endif %}>
+                        {{ name }}/{{ y }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit"
+                    class="min-h-[48px] px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 active:bg-slate-800 transition font-medium">
+                Filtrar
+            </button>
+        </form>
+    </div>
+
+    <!-- Summary Cards: 1 col mobile, 2 col tablet, 4 col desktop -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5">
+            <div class="text-sm font-medium text-slate-600 mb-1">Saldo Consolidado</div>
+            <div class="text-xl sm:text-2xl font-bold text-slate-900 break-words">R$ {{ saldo_consolidado|floatformat:2 }}</div>
+            <div class="text-xs text-slate-500 mt-1">Atual (todas as contas)</div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-emerald-500">📈</span>
+                <span class="text-sm font-medium text-slate-600">Entradas</span>
+            </div>
+            <div class="text-xl sm:text-2xl font-bold text-emerald-600 break-words">R$ {{ entradas|floatformat:2 }}</div>
+            <div class="text-xs text-slate-500 mt-1">Receitas no mês</div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-rose-500">📉</span>
+                <span class="text-sm font-medium text-slate-600">Saídas</span>
+            </div>
+            <div class="text-xl sm:text-2xl font-bold text-rose-600 break-words">R$ {{ saidas|floatformat:2 }}</div>
+            <div class="text-xs text-slate-500 mt-1">Despesas no mês</div>
+        </div>
+
+        <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-4 sm:p-5">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-amber-500">⚖️</span>
+                <span class="text-sm font-medium text-amber-800">Crédito Curador</span>
+            </div>
+            <div class="text-xl sm:text-2xl font-bold text-amber-700 break-words">R$ {{ credito_curador|floatformat:2 }}</div>
+            <div class="text-xs text-amber-600 mt-1">Pendente reembolso</div>
+        </div>
+    </div>
+
+    <!-- Balance Equation -->
+    <div class="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200 p-4 mb-5 sm:mb-6">
+        <div class="text-sm font-medium text-slate-700 mb-2">Equação de Conciliação Financeira</div>
+        <div class="font-mono text-xs sm:text-sm text-slate-900 bg-white rounded-lg p-3 border border-slate-300 overflow-x-auto whitespace-nowrap">
+            Saldo Inicial + Entradas − Saídas = Saldo Final
+        </div>
+        <div class="mt-2 text-xs text-slate-600">
+            Período: {{ first_day|date:"d/m/Y" }} a {{ last_day|date:"d/m/Y" }}
+        </div>
+    </div>
+
+    <!-- Chronological Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h2 class="font-semibold text-slate-900">
+                Tabela Cronológica dos Movimentos
+                <span class="text-sm font-normal text-slate-600">({{ transacoes|length }} registros)</span>
+            </h2>
+        </div>
+
+        {% if transacoes %}
+        <!-- Mobile: stacked cards -->
+        <div class="md:hidden divide-y divide-slate-100">
+            {% for item in transacoes %}
+            {% with t=item.transacao %}
+            <div class="p-4">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-slate-900">
+                            {{ t.descricao|default:t.favorecido_nome|default:t.get_categoria_display }}
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            {{ t.data|date:"d/m/Y" }} · {{ t.get_categoria_display }}
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                        <span class="font-semibold text-emerald-600">+R$ {{ t.valor|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="font-semibold text-rose-600">-R$ {{ t.valor|floatformat:2 }}</span>
+                        {% endif %}
+                        {% if t.pago_pelo_curador %}
+                        <div class="text-xs text-amber-600 mt-0.5">Recursos do curador</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if item.anexos %}
+                <div class="flex flex-wrap gap-1.5">
+                    {% for a in item.anexos %}
+                    <span class="px-2 py-1 bg-slate-200 text-slate-700 text-xs rounded font-mono">
+                        {{ a.label }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+
+        <!-- Tablet/Desktop: horizontally scrollable table with swipe cue -->
+        <div class="hidden md:block relative">
+            <div class="overflow-x-auto" aria-label="Tabela de movimentos — deslize horizontalmente para ver todas as colunas">
+                <table class="w-full min-w-[760px]">
+                    <thead class="bg-slate-100 text-slate-700 text-sm">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">Data</th>
+                            <th class="px-4 py-3 text-left font-semibold">Tipo</th>
+                            <th class="px-4 py-3 text-left font-semibold">Categoria</th>
+                            <th class="px-4 py-3 text-left font-semibold">Descrição</th>
+                            <th class="px-4 py-3 text-right font-semibold">Valor</th>
+                            <th class="px-4 py-3 text-center font-semibold">Anexos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for item in transacoes %}
+                        {% with t=item.transacao %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
+                                {{ t.data|date:"d/m/Y" }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">Entrada</span>
+                                {% elif t.pago_pelo_curador %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 whitespace-nowrap">Curador</span>
+                                {% elif t.tipo == 'SAQUE' %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 whitespace-nowrap">Saque</span>
+                                {% elif t.tipo == 'REEMBOLSO_CURADOR' %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">Reembolso</span>
+                                {% elif t.tipo == 'TRANSF_INTERNA' %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 whitespace-nowrap">Transfer.</span>
+                                {% else %}
+                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 whitespace-nowrap">Saída</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">
+                                {{ t.get_categoria_display }}
+                            </td>
+                            <td class="px-4 py-3 max-w-[260px]">
+                                <div class="text-sm font-medium text-slate-900 truncate">
+                                    {{ t.descricao|default:t.favorecido_nome|default:"-" }}
+                                </div>
+                                {% if t.favorecido_nome %}
+                                <div class="text-xs text-slate-500 truncate">{{ t.favorecido_nome }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                                <span class="font-semibold text-emerald-600">+R$ {{ t.valor|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="font-semibold text-rose-600">-R$ {{ t.valor|floatformat:2 }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if item.anexos %}
+                                <div class="flex flex-wrap gap-1 justify-center">
+                                    {% for a in item.anexos %}
+                                    <span class="px-1.5 py-0.5 bg-slate-200 text-slate-700 text-xs rounded font-mono"
+                                          title="{{ a.anexo.get_tipo_documento_display }}">
+                                        {{ a.label }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-slate-300 text-sm">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Fade cue hinting at horizontal scroll -->
+            <div class="scroll-cue pointer-events-none absolute top-0 right-0 bottom-0 w-12 flex items-center justify-end pr-2 text-slate-400" aria-hidden="true">
+                <span class="text-lg">→</span>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="px-4 sm:px-6 py-12 text-center">
+            <span class="text-5xl">📭</span>
+            <p class="text-slate-500 text-lg mt-4">Nenhuma transação neste período</p>
+            <p class="text-slate-400 text-sm mt-2">Selecione outro mês ou registre transações</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

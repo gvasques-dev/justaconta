@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Transações - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-5 sm:mb-6 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 truncate">Transações</h1>
+            <p class="text-sm text-slate-600">Histórico completo de movimentações</p>
+        </div>
+        <a href="{% url 'contas:transacao_nova' %}"
+           class="shrink-0 min-h-[48px] px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition flex items-center gap-2 font-medium">
+            <span>+</span> <span class="hidden sm:inline">Nova Transação</span><span class="sm:hidden">Nova</span>
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-5 sm:mb-6">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div>
+                <label for="tipo" class="block text-sm font-medium text-slate-700 mb-1.5">Tipo</label>
+                <select name="tipo" id="tipo"
+                        class="w-full min-h-[48px] rounded-lg border-gray-300 bg-white px-3 py-2 text-base sm:text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Todos</option>
+                    {% for value, label in tipo_choices %}
+                    <option value="{{ value }}" {% if tipo_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="categoria" class="block text-sm font-medium text-slate-700 mb-1.5">Categoria</label>
+                <select name="categoria" id="categoria"
+                        class="w-full min-h-[48px] rounded-lg border-gray-300 bg-white px-3 py-2 text-base sm:text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Todas</option>
+                    {% for value, label in categoria_choices %}
+                    <option value="{{ value }}" {% if categoria_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="data_inicio" class="block text-sm font-medium text-slate-700 mb-1.5">Data Início</label>
+                <input type="date" name="data_inicio" id="data_inicio" value="{{ data_inicio }}"
+                       class="w-full min-h-[48px] rounded-lg border-gray-300 px-3 py-2 text-base sm:text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label for="data_fim" class="block text-sm font-medium text-slate-700 mb-1.5">Data Fim</label>
+                <input type="date" name="data_fim" id="data_fim" value="{{ data_fim }}"
+                       class="w-full min-h-[48px] rounded-lg border-gray-300 px-3 py-2 text-base sm:text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <div class="flex gap-2 sm:items-end">
+                <button type="submit"
+                        class="flex-1 sm:flex-none min-h-[48px] px-5 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 active:bg-slate-800 transition font-medium">
+                    Filtrar
+                </button>
+                <a href="{% url 'contas:transacao_lista' %}"
+                   class="flex-1 sm:flex-none min-h-[48px] px-5 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium text-center">
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {% if transacoes %}
+        <div class="divide-y divide-slate-100">
+            {% for t in transacoes %}
+            <a href="{% url 'contas:transacao_detalhe' t.pk %}" class="block px-4 sm:px-6 py-4 active:bg-slate-50 hover:bg-slate-50 transition">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <!-- Type Badge -->
+                        {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">Entrada</span>
+                        {% elif t.pago_pelo_curador %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 whitespace-nowrap">Curador</span>
+                        {% elif t.tipo == 'SAQUE' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 whitespace-nowrap">Saque</span>
+                        {% elif t.tipo == 'DEPOSITO' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">Depósito</span>
+                        {% elif t.tipo == 'REEMBOLSO_CURADOR' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 whitespace-nowrap">Reembolso</span>
+                        {% elif t.tipo == 'TRANSF_INTERNA' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 whitespace-nowrap">Transferência</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 whitespace-nowrap">Saída</span>
+                        {% endif %}
+
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-slate-900 truncate">
+                                {{ t.descricao|default:t.favorecido_nome|default:t.get_categoria_display }}
+                            </div>
+                            <div class="text-xs text-slate-500 mt-0.5">
+                                {{ t.data|date:"d/m/Y" }} · {{ t.get_categoria_display }}
+                                {% if t.favorecido_nome %} · {{ t.favorecido_nome }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <!-- Attachment Status -->
+                        <div class="flex items-center gap-1">
+                            {% if t.anexos.all %}
+                            <span class="text-emerald-500">📎</span>
+                            <span class="text-xs text-slate-500">{{ t.anexos.all|length }}</span>
+                            {% else %}
+                            <span class="text-slate-300">📄</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="text-right">
+                            {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                            <span class="font-semibold text-emerald-600 whitespace-nowrap">+R$ {{ t.valor|floatformat:2 }}</span>
+                            {% else %}
+                            <span class="font-semibold text-rose-600 whitespace-nowrap">-R$ {{ t.valor|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="px-6 py-12 text-center">
+            <span class="text-5xl">🔍</span>
+            <p class="text-slate-500 text-lg mt-4">Nenhuma transação encontrada</p>
+            <a href="{% url 'contas:transacao_nova' %}"
+               class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+              Criar Primeira Transação
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

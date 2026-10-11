@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="space-y-5 sm:space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 truncate">Dashboard Financeiro</h1>
+            <p class="text-sm text-slate-600">Visão geral consolidada da curatela</p>
+        </div>
+        <!-- Desktop-only quick actions -->
+        <div class="hidden lg:flex gap-2 shrink-0">
+            <a href="{% url 'contas:recibo_novo' %}" class="min-h-[48px] px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center gap-2 font-medium">
+                <span>+</span> Novo Recibo
+            </a>
+            <a href="{% url 'contas:despesa_nova' %}" class="min-h-[48px] px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 active:bg-rose-800 transition flex items-center gap-2 font-medium">
+                <span>+</span> Despesa
+            </a>
+            <a href="{% url 'contas:transacao_nova' %}" class="min-h-[48px] px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 active:bg-slate-900 transition flex items-center gap-2 font-medium">
+                <span>+</span> Transação
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Grid: stacked on mobile, 3 columns on desktop -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <!-- Consolidated Balance -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-slate-600">Saldo Consolidado</span>
+                <span class="text-2xl">💰</span>
+            </div>
+            <div class="text-2xl sm:text-3xl font-bold text-slate-900 break-words">R$ {{ saldo_consolidado|floatformat:2 }}</div>
+            <p class="text-xs text-slate-500 mt-2">Todas as contas ativas + caixa físico</p>
+        </div>
+
+        <!-- Cash Drawer -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-slate-600">Caixa Físico</span>
+                <span class="text-2xl">💵</span>
+            </div>
+            <div class="text-2xl sm:text-3xl font-bold text-emerald-600 break-words">R$ {{ saldo_caixa|floatformat:2 }}</div>
+            <p class="text-xs text-slate-500 mt-2">Espécie em mãos</p>
+        </div>
+
+        <!-- Curator Credit -->
+        <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-5 sm:p-6 sm:col-span-2 lg:col-span-1">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-amber-800">Crédito do Curador</span>
+                <span class="text-2xl">⚖️</span>
+            </div>
+            <div class="text-2xl sm:text-3xl font-bold text-amber-700 break-words">R$ {{ credito_curador|floatformat:2 }}</div>
+            <p class="text-xs text-amber-600 mt-2">Pendente de reembolso (recursos próprios)</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions (mobile/tablet only) — big 88px tap targets -->
+    <div class="lg:hidden grid grid-cols-3 gap-3">
+        <a href="{% url 'contas:recibo_novo' %}" class="flex flex-col items-center justify-center gap-2 min-h-[88px] p-4 bg-white rounded-xl shadow-sm border border-slate-200 active:bg-emerald-50 active:border-emerald-300 transition">
+            <span class="text-3xl">✍️</span>
+            <span class="text-xs font-medium text-slate-700 text-center">Novo Recibo</span>
+        </a>
+        <a href="{% url 'contas:despesa_nova' %}" class="flex flex-col items-center justify-center gap-2 min-h-[88px] p-4 bg-white rounded-xl shadow-sm border border-slate-200 active:bg-rose-50 active:border-rose-300 transition">
+            <span class="text-3xl">🛒</span>
+            <span class="text-xs font-medium text-slate-700 text-center">Despesa</span>
+        </a>
+        <a href="{% url 'contas:transacao_nova' %}" class="flex flex-col items-center justify-center gap-2 min-h-[88px] p-4 bg-white rounded-xl shadow-sm border border-slate-200 active:bg-slate-100 active:border-slate-400 transition">
+            <span class="text-3xl">💸</span>
+            <span class="text-xs font-medium text-slate-700 text-center">Transação</span>
+        </a>
+    </div>
+
+    <!-- Accounts Overview -->
+    {% if contas %}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h2 class="font-semibold text-slate-900">Contas Ativas</h2>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for conta in contas %}
+            <div class="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-xl shrink-0">{% if conta.tipo == 'CAIXA_FISICO' %}💵{% else %}🏦{% endif %}</span>
+                    <div class="min-w-0">
+                        <div class="font-medium text-slate-900 truncate">{{ conta.nome }}</div>
+                        <div class="text-xs text-slate-500">{{ conta.get_tipo_display }}</div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="font-semibold text-slate-900">R$ {{ conta.saldo_atual|floatformat:2 }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <h2 class="font-semibold text-slate-900">Transações Recentes</h2>
+            <a href="{% url 'contas:transacao_lista' %}" class="min-h-[44px] flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium">Ver todas →</a>
+        </div>
+
+        {% if transacoes_recentes %}
+        <div class="divide-y divide-slate-100">
+            {% for t in transacoes_recentes %}
+            <a href="{% url 'contas:transacao_detalhe' t.pk %}" class="block px-4 sm:px-6 py-4 active:bg-slate-50 hover:bg-slate-50 transition">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <!-- Type Badge -->
+                        {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 shrink-0">Entrada</span>
+                        {% elif t.pago_pelo_curador %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 shrink-0">Curador</span>
+                        {% elif t.tipo == 'SAQUE' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 shrink-0">Saque</span>
+                        {% elif t.tipo == 'TRANSF_INTERNA' %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 shrink-0">Transfer.</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 shrink-0">Saída</span>
+                        {% endif %}
+
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-slate-900 truncate text-sm sm:text-base">
+                                {{ t.descricao|default:t.favorecido_nome|default:t.get_categoria_display }}
+                            </div>
+                            <div class="text-xs text-slate-500 mt-0.5">
+                                {{ t.data|date:"d/m/Y" }} · {{ t.get_categoria_display }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <!-- Attachment Status Icon -->
+                        {% if t.anexos.all %}
+                        <span class="text-emerald-500" title="Com anexos">📎</span>
+                        {% else %}
+                        <span class="text-slate-300" title="Sem anexos">📄</span>
+                        {% endif %}
+
+                        <!-- Amount -->
+                        {% if t.tipo == 'ENTRADA' or t.tipo == 'DEPOSITO' %}
+                        <span class="font-semibold text-emerald-600 whitespace-nowrap text-sm sm:text-base">+R$ {{ t.valor|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="font-semibold text-rose-600 whitespace-nowrap text-sm sm:text-base">-R$ {{ t.valor|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="px-4 sm:px-6 py-12 text-center">
+            <p class="text-slate-500 text-lg">Nenhuma transação registrada ainda</p>
+            <div class="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="{% url 'contas:recibo_novo' %}" class="min-h-[48px] px-5 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:bg-emerald-800 font-medium flex items-center justify-center">Criar Recibo</a>
+                <a href="{% url 'contas:despesa_nova' %}" class="min-h-[48px] px-5 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 active:bg-rose-800 font-medium flex items-center justify-center">Criar Despesa</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

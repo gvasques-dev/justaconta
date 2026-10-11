@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Transação - Curatela Manager{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-rose-200 overflow-hidden">
+        <div class="px-6 py-4 bg-rose-50 border-b border-rose-200">
+            <h1 class="text-xl font-bold text-rose-800">⚠️ Confirmar Exclusão</h1>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <p class="text-slate-700">
+                Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
+            </p>
+
+            <!-- Transaction Summary -->
+            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-medium text-slate-900">
+                            {{ transacao.descricao|default:transacao.favorecido_nome|default:transacao.get_categoria_display }}
+                        </div>
+                        <div class="text-sm text-slate-600">
+                            {{ transacao.data|date:"d/m/Y" }} · {{ transacao.get_tipo_display }} · {{ transacao.get_categoria_display }}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        {% if transacao.tipo == 'ENTRADA' or transacao.tipo == 'DEPOSITO' %}
+                        <span class="font-semibold text-emerald-600">+R$ {{ transacao.valor|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="font-semibold text-rose-600">-R$ {{ transacao.valor|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if transacao.anexos.all %}
+                <div class="mt-2 text-xs text-slate-500">
+                    📎 {{ transacao.anexos.all|length }} anexo(s) também serão excluídos
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <a href="{% url 'contas:transacao_detalhe' transacao.pk %}"
+                   class="min-h-[48px] px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 active:bg-slate-400 transition font-medium flex items-center justify-center order-2 sm:order-1">
+                    Cancelar
+                </a>
+                <form method="post" class="flex-1 order-1 sm:order-2">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full min-h-[52px] px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 active:bg-rose-800 transition font-medium">
+                        🗑️ Excluir Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
