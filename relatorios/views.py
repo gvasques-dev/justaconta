@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.utils import timezone
@@ -17,6 +18,7 @@ def get_month_bounds(year, month):
     return first_day, last_day
 
 
+@login_required
 def relatorio_mensal(request):
     """Monthly judicial report with filters and preview table."""
     # Get month/year from query params or default to current month
@@ -93,6 +95,7 @@ def relatorio_mensal(request):
     return render(request, 'relatorios/mensal.html', context)
 
 
+@login_required
 def exportar_dossier_pdf(request):
     """Export court-ready PDF dossier for the selected month."""
     from reportlab.lib.pagesizes import letter, A4
@@ -249,6 +252,7 @@ def exportar_dossier_pdf(request):
     return response
 
 
+@login_required
 def exportar_relatorio_reembolso(request):
     """Export curator reimbursement petition report."""
     from reportlab.lib.pagesizes import letter, A4

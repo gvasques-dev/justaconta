@@ -1,0 +1,71 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Entrar - JustaConta{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto pt-10 sm:pt-20">
+  <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-slate-900">Entrar</h2>
+      <p class="text-slate-500 text-sm mt-2">Acesse sua conta para continuar</p>
+    </div>
+
+    {% if form.errors %}
+    <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 min-h-[48px] flex items-center rounded-lg mb-6">
+      <span class="text-xs font-medium">Credenciais inválidas. Tente novamente.</span>
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      
+      <div>
+        <label for="{{ form.username.id_for_label }}" class="block text-xs font-medium text-slate-700 mb-1">Usuário ou E-mail</label>
+        <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" autocomplete="username"
+               class="w-full min-h-[48px] px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+               placeholder="seu_usuario">
+      </div>
+
+      <div class="relative">
+        <label for="{{ form.password.id_for_label }}" class="block text-xs font-medium text-slate-700 mb-1">Senha</label>
+        <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" autocomplete="current-password"
+               class="w-full min-h-[48px] px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+               placeholder="••••••••">
+        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" id="toggle-password">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.483 7.115 8.012 3 12 3c3.988 0 8.517 4.115 9.542 9 1.025 4.879-5.55 9.879-10.542-9-3.988 0-8.517-4.115-9.542-9z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between mt-2">
+        <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <input type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500"> Lembrar-me
+        </label>
+        <a href="{% url 'password_reset' %}" class="text-sm text-indigo-600 hover:text-indigo-700 medium">
+          Esqueceu a senha?
+        </a>
+      </div>
+
+      <button type="submit" class="w-full min-h-[48px] bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transition-all">
+        Entrar
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-slate-500">
+      Não tem uma conta? O acesso é gerenciado pelo administrador. Procure o responsável pelo sistema.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById("toggle-password").addEventListener("click", function() {
+    var input = document.getElementById("{{ form.password.id_for_label }}");
+    var type = input.getAttribute("type") === "password" ? "text" : "password";
+    input.setAttribute("type", type);
+  });
+</script>
+{% endblock %}

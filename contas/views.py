@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
@@ -15,32 +17,33 @@ from .forms import (
 from .services import get_saldos, get_credito_curador
 
 
-class ContaListView(ListView):
+class ContaListView(LoginRequiredMixin, ListView):
     model = ContaBancaria
     template_name = 'contas/lista.html'
     context_object_name = 'contas'
 
 
-class ContaCreateView(CreateView):
+class ContaCreateView(LoginRequiredMixin, CreateView):
     model = ContaBancaria
     form_class = ContaBancariaForm
     template_name = 'contas/form.html'
     success_url = reverse_lazy('contas:lista')
 
 
-class ContaUpdateView(UpdateView):
+class ContaUpdateView(LoginRequiredMixin, UpdateView):
     model = ContaBancaria
     form_class = ContaBancariaForm
     template_name = 'contas/form.html'
     success_url = reverse_lazy('contas:lista')
 
 
-class ContaDeleteView(DeleteView):
+class ContaDeleteView(LoginRequiredMixin, DeleteView):
     model = ContaBancaria
     template_name = 'contas/confirmar_exclusao.html'
     success_url = reverse_lazy('contas:lista')
 
 
+@login_required
 def dashboard(request):
     """Main financial dashboard with metrics and recent transactions."""
     saldos = get_saldos()
@@ -59,6 +62,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
+@login_required
 def recibo_novo(request):
     """Touch-enabled signature receipt form."""
     if request.method == 'POST':
@@ -114,6 +118,7 @@ def recibo_novo(request):
     return render(request, 'recibos/novo.html', {'form': form})
 
 
+@login_required
 def despesa_nova(request):
     """Expense & delivery entry form with double attachment."""
     if request.method == 'POST':
@@ -172,6 +177,7 @@ def despesa_nova(request):
     return render(request, 'despesas/nova.html', {'form': form})
 
 
+@login_required
 def transacao_lista(request):
     """List all transactions with filters."""
     transacoes = Transacao.objects.all()
@@ -208,6 +214,7 @@ def transacao_lista(request):
     return render(request, 'transacoes/lista.html', context)
 
 
+@login_required
 def transacao_create(request):
     """Generic transaction creation form."""
     if request.method == 'POST':
@@ -222,6 +229,7 @@ def transacao_create(request):
     return render(request, 'transacoes/form.html', {'form': form})
 
 
+@login_required
 def transacao_update(request, pk):
     """Update transaction."""
     transacao = get_object_or_404(Transacao, pk=pk)
@@ -237,6 +245,7 @@ def transacao_update(request, pk):
     return render(request, 'transacoes/form.html', {'form': form, 'transacao': transacao})
 
 
+@login_required
 def transacao_delete(request, pk):
     """Delete transaction."""
     transacao = get_object_or_404(Transacao, pk=pk)
@@ -248,6 +257,7 @@ def transacao_delete(request, pk):
     return render(request, 'transacoes/confirmar_exclusao.html', {'transacao': transacao})
 
 
+@login_required
 def transacao_detail(request, pk):
     """Transaction detail with attachments."""
     transacao = get_object_or_404(Transacao, pk=pk)

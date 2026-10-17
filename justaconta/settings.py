@@ -23,7 +23,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-change-me-in-prod
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Allowed hosts: comma-separated list from env, plus onrender.com wildcard
-_raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
 ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
 
 # CSRF trusted origins for Render (only when not DEBUG)
@@ -171,3 +171,13 @@ LOGGING = {
         },
     },
 }
+
+# Authentication & Authorization settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOCKOUT_TEMPLATE = None

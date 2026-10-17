@@ -26,3 +26,6 @@ local_settings.py
 .idea/
 .DS_Store
 Thumbs.db
+
+guia.md
+txt.md

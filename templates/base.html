@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -44,35 +44,48 @@
     </div>
     {% endif %}
 
-    <!-- Desktop Sidebar (≥1024px) -->
+    <!-- Desktop Sidebar (â‰¥1024px) -->
     <aside class="hidden lg:flex flex-col w-64 bg-slate-900 text-white min-h-screen fixed left-0 top-0">
         <div class="p-6 border-b border-slate-800">
             <h1 class="text-xl font-bold text-white">JustaConta</h1>
-            <p class="text-slate-400 text-sm mt-1">Gestão Financeira Judicial</p>
+            <p class="text-slate-400 text-sm mt-1">GestÃ£o Financeira Judicial</p>
         </div>
         <nav class="flex-1 p-4 space-y-1">
             <a href="{% url 'contas:dashboard' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">📊</span> Dashboard
+                <span class="text-xl">ðŸ“Š</span> Dashboard
             </a>
             <a href="{% url 'contas:recibo_novo' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'recibo_novo' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">✍️</span> Novo Recibo
+                <span class="text-xl">âœï¸</span> Novo Recibo
             </a>
             <a href="{% url 'contas:despesa_nova' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'despesa_nova' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">🛒</span> Nova Despesa
+                <span class="text-xl">ðŸ›’</span> Nova Despesa
             </a>
             <a href="{% url 'contas:transacao_lista' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'transacao_lista' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">💳</span> Transações
+                <span class="text-xl">ðŸ’³</span> TransaÃ§Ãµes
             </a>
             <a href="{% url 'contas:lista' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.url_name == 'lista' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">🏦</span> Contas
+                <span class="text-xl">ðŸ¦</span> Contas
             </a>
             <a href="{% url 'relatorios:relatorio_mensal' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg {% if request.resolver_match.namespace == 'relatorios' %}bg-indigo-600{% else %}hover:bg-slate-800{% endif %}">
-                <span class="text-xl">📋</span> Relatórios
+                <span class="text-xl">ðŸ“‹</span> RelatÃ³rios
             </a>
         </nav>
         <div class="p-4 border-t border-slate-800">
+            {% if user.is_authenticated %}
+                <div class="flex items-center gap-3 min-h-[48px] px-4 text-slate-300">
+                    <span class="text-xl">👤</span>
+                    <span class="text-sm">{{ user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg hover:bg-slate-800 text-slate-400">
+                    <span class="text-xl">⚠️</span> Sair
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg hover:bg-slate-800 text-slate-400">
+                    <span class="text-xl">🔑</span> Entrar
+                </a>
+            {% endif %}
             <a href="/admin/" class="flex items-center gap-3 min-h-[48px] px-4 rounded-lg hover:bg-slate-800 text-slate-400">
-                <span class="text-xl">⚙️</span> Admin
+                <span class="text-xl">âš™ï¸</span> Admin
             </a>
         </div>
     </aside>
@@ -81,9 +94,16 @@
     <header class="lg:hidden sticky top-0 z-40 bg-slate-900 text-white px-4 py-3 flex items-center justify-between"
             style="padding-top: calc(0.75rem + env(safe-area-inset-top));">
         <h1 class="text-base font-bold">JustaConta</h1>
-        <a href="/admin/" class="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-300 text-xl" aria-label="Admin">⚙️</a>
+        <div class="flex items-center gap-2">
+            {% if user.is_authenticated %}
+                <span class="text-sm text-slate-200">Olá, {{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-300 text-xl" aria-label="Logout">⚠️</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-300 text-xl" aria-label="Login">🔑</a>
+            {% endif %}
+            <a href="/admin/" class="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-300 text-xl" aria-label="Admin">⚙️</a>
+        </div>
     </header>
-
     <!-- Main Content -->
     <main class="lg:ml-64 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8">
         {% block content %}{% endblock %}
@@ -94,24 +114,24 @@
          style="padding-bottom: env(safe-area-inset-bottom);">
         <div class="grid grid-cols-5">
             <a href="{% url 'contas:dashboard' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'dashboard' %}text-indigo-600{% else %}text-slate-500{% endif %}">
-                <span class="text-xl leading-none">📊</span>
-                <span class="text-[11px] mt-1 font-medium">Início</span>
+                <span class="text-xl leading-none">ðŸ“Š</span>
+                <span class="text-[11px] mt-1 font-medium">InÃ­cio</span>
             </a>
             <a href="{% url 'contas:recibo_novo' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'recibo_novo' %}text-indigo-600{% else %}text-slate-500{% endif %}">
-                <span class="text-xl leading-none">✍️</span>
+                <span class="text-xl leading-none">âœï¸</span>
                 <span class="text-[11px] mt-1 font-medium">Recibo</span>
             </a>
             <a href="{% url 'contas:despesa_nova' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'despesa_nova' %}text-indigo-600{% else %}text-slate-500{% endif %}">
-                <span class="text-xl leading-none">🛒</span>
+                <span class="text-xl leading-none">ðŸ›’</span>
                 <span class="text-[11px] mt-1 font-medium">Despesa</span>
             </a>
             <a href="{% url 'contas:transacao_lista' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.url_name == 'transacao_lista' %}text-indigo-600{% else %}text-slate-500{% endif %}">
-                <span class="text-xl leading-none">💳</span>
-                <span class="text-[11px] mt-1 font-medium">Transações</span>
+                <span class="text-xl leading-none">ðŸ’³</span>
+                <span class="text-[11px] mt-1 font-medium">TransaÃ§Ãµes</span>
             </a>
             <a href="{% url 'relatorios:relatorio_mensal' %}" class="flex flex-col items-center justify-center min-h-[56px] py-2 {% if request.resolver_match.namespace == 'relatorios' %}text-indigo-600{% else %}text-slate-500{% endif %}">
-                <span class="text-xl leading-none">📋</span>
-                <span class="text-[11px] mt-1 font-medium">Relatórios</span>
+                <span class="text-xl leading-none">ðŸ“‹</span>
+                <span class="text-[11px] mt-1 font-medium">RelatÃ³rios</span>
             </a>
         </div>
     </nav>
@@ -119,3 +139,4 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
+
