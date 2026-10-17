@@ -175,7 +175,7 @@ LOGGING = {
 # Authentication & Authorization settings
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 PASSWORD_RESET_TIMEOUT = 86400  # 24 hours
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
